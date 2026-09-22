@@ -20,8 +20,7 @@ function toClient(row) {
 }
 
 export default async function handler(req) {
-  const url = new URL(req.url);
-  const id  = url.pathname.split('/').pop();
+  const id  = req.url.split('/').pop().split('?')[0];
   const hasId = id && id !== 'recurring';
 
   if (req.method === 'GET') {

@@ -4,5 +4,6 @@ import * as schema from './schema.js';
 
 const { Pool } = pkg;
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const connectionString = process.env.POSTGRES_URL ?? process.env.DATABASE_URL;
+const pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false } });
 export const db = drizzle(pool, { schema });
