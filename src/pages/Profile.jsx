@@ -299,7 +299,7 @@ function Profile({ profile, setProfile, transactions, categories, clearAllData }
       {/* Data Management */}
       <Section>
         <SectionTitle>ניהול נתונים</SectionTitle>
-        <DataBtn onClick={exportAllCSV}>📊 ייצוא דוח מלא (HTML)</DataBtn>
+        <DataBtn onClick={exportAllCSV}>📄 ייצוא דוח מלא (PDF)</DataBtn>
         <DataBtn $danger onClick={() => setShowClearConfirm(true)}>🗑️ מחק את כל הנתונים</DataBtn>
       </Section>
 

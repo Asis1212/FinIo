@@ -95,7 +95,7 @@ function TransactionForm({ setActivityPage, toast, setToast, addTransaction, edi
         <BackBtn onClick={handleBack}>{step === 1 ? "✕" : "‹"}</BackBtn>
         <PageTitle>{pageTitle}</PageTitle>
         {isEdit && removeTransaction
-          ? <DeleteTxBtn onClick={() => removeTransaction(editTx.id)}>🗑️</DeleteTxBtn>
+          ? <DeleteTxBtn onClick={() => removeTransaction(editTx.id)}>מחק</DeleteTxBtn>
           : <StepLabel>{step} / {totalSteps}</StepLabel>
         }
       </PageHeader>
@@ -343,18 +343,17 @@ const StepLabel = styled.div`
 `;
 
 const DeleteTxBtn = styled.button`
-  background: rgba(244,114,182,0.12);
-  border: 1px solid rgba(244,114,182,0.2);
+  background: none;
+  border: none;
   color: #f472b6;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  &:active { background: rgba(244,114,182,0.25); }
+  font-family: inherit;
+  padding: 4px 2px;
+  width: 36px;
+  text-align: center;
+  &:active { opacity: 0.7; }
 `;
 
 const ProgressTrack = styled.div`
@@ -383,6 +382,7 @@ const Card = styled.div`
   box-shadow: 0 4px 24px rgba(0,0,0,0.3);
   width: 100%;
   box-sizing: border-box;
+  overflow: hidden;
 `;
 
 const TypeToggle = styled.div`
@@ -526,6 +526,7 @@ const PersonBtn = styled.button`
 
 const DateInput = styled.input`
   width: 100%;
+  max-width: 100%;
   background: #1e2535;
   border: 1px solid rgba(255,255,255,0.06);
   border-radius: 12px;
@@ -536,6 +537,8 @@ const DateInput = styled.input`
   outline: none;
   box-sizing: border-box;
   display: block;
+  -webkit-appearance: none;
+  appearance: none;
 
   &:focus { border-color: rgba(99,102,241,0.4); }
 `;
