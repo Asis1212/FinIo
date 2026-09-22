@@ -23,19 +23,30 @@ function toClient(row) {
   };
 }
 
-export default async function handler(req) {
-  const id  = req.url.split('/').pop().split('?')[0];
-  const hasId = id && id !== 'transactions';
+export async function GET() {
+  const rows = await db.select().from(transactions).orderBy(transactions.date);
+  return json(rows.map(toClient));
+}
 
-  if (req.method === 'GET') {
-    const rows = await db.select().from(transactions).orderBy(transactions.date);
-    return json(rows.map(toClient));
-  }
-
-  if (req.method === 'POST') {
-    const body = await req.json();
-    await db.insert(transactions).values({
-      id:               body.id,
+export async function POST(req) {
+  const body = await req.json();
+  await db.insert(transactions).values({
+    id:               body.id,
+    type:             body.type,
+    amount:           String(body.amount),
+    categoryId:       body.category,
+    date:             body.date,
+    description:      body.description ?? '',
+    person:           body.person ?? null,
+    paymentMethod:    body.paymentMethod ?? '',
+    recurring:        body.recurring ?? false,
+    installmentId:    body.installmentId    ?? null,
+    installmentIndex: body.installmentIndex ?? null,
+    installmentTotal: body.installmentTotal ?? null,
+    createdAt:        new Date(),
+  }).onConflictDoUpdate({
+    target: transactions.id,
+    set: {
       type:             body.type,
       amount:           String(body.amount),
       categoryId:       body.category,
@@ -47,48 +58,32 @@ export default async function handler(req) {
       installmentId:    body.installmentId    ?? null,
       installmentIndex: body.installmentIndex ?? null,
       installmentTotal: body.installmentTotal ?? null,
-      createdAt:        new Date(),
-    }).onConflictDoUpdate({
-      target: transactions.id,
-      set: {
-        type:             body.type,
-        amount:           String(body.amount),
-        categoryId:       body.category,
-        date:             body.date,
-        description:      body.description ?? '',
-        person:           body.person ?? null,
-        paymentMethod:    body.paymentMethod ?? '',
-        recurring:        body.recurring ?? false,
-        installmentId:    body.installmentId    ?? null,
-        installmentIndex: body.installmentIndex ?? null,
-        installmentTotal: body.installmentTotal ?? null,
-      },
-    });
-    return json(toClient({ ...body, categoryId: body.category }), 201);
-  }
+    },
+  });
+  return json(toClient({ ...body, categoryId: body.category }), 201);
+}
 
-  if (req.method === 'PUT' && hasId) {
-    const body = await req.json();
-    await db.update(transactions).set({
-      type:             body.type,
-      amount:           String(body.amount),
-      categoryId:       body.category,
-      date:             body.date,
-      description:      body.description ?? '',
-      person:           body.person ?? null,
-      paymentMethod:    body.paymentMethod ?? '',
-      recurring:        body.recurring ?? false,
-      installmentId:    body.installmentId    ?? null,
-      installmentIndex: body.installmentIndex ?? null,
-      installmentTotal: body.installmentTotal ?? null,
-    }).where(eq(transactions.id, id));
-    return json(toClient({ ...body, categoryId: body.category }));
-  }
+export async function PUT(req) {
+  const id = req.url.split('/').pop().split('?')[0];
+  const body = await req.json();
+  await db.update(transactions).set({
+    type:             body.type,
+    amount:           String(body.amount),
+    categoryId:       body.category,
+    date:             body.date,
+    description:      body.description ?? '',
+    person:           body.person ?? null,
+    paymentMethod:    body.paymentMethod ?? '',
+    recurring:        body.recurring ?? false,
+    installmentId:    body.installmentId    ?? null,
+    installmentIndex: body.installmentIndex ?? null,
+    installmentTotal: body.installmentTotal ?? null,
+  }).where(eq(transactions.id, id));
+  return json(toClient({ ...body, categoryId: body.category }));
+}
 
-  if (req.method === 'DELETE' && hasId) {
-    await db.delete(transactions).where(eq(transactions.id, id));
-    return json({ ok: true });
-  }
-
-  return json({ error: 'Method not allowed' }, 405);
+export async function DELETE(req) {
+  const id = req.url.split('/').pop().split('?')[0];
+  await db.delete(transactions).where(eq(transactions.id, id));
+  return json({ ok: true });
 }

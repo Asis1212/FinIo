@@ -16,17 +16,26 @@ function toClient(row) {
   };
 }
 
-export default async function handler(req) {
-  if (req.method === 'GET') {
-    const rows = await db.select().from(profile).limit(1);
-    if (!rows.length) return json({ error: 'Not found' }, 404);
-    return json(toClient(rows[0]));
-  }
+export async function GET() {
+  const rows = await db.select().from(profile).limit(1);
+  if (!rows.length) return json({ error: 'Not found' }, 404);
+  return json(toClient(rows[0]));
+}
 
-  if (req.method === 'PUT') {
-    const body = await req.json();
-    await db.insert(profile).values({
-      id:                     1,
+export async function PUT(req) {
+  const body = await req.json();
+  await db.insert(profile).values({
+    id:                     1,
+    personOneName:          body.personOneName,
+    personTwoName:          body.personTwoName,
+    currency:               body.currency,
+    personOneMonthlyIncome: String(body.personOneMonthlyIncome ?? 0),
+    personTwoMonthlyIncome: String(body.personTwoMonthlyIncome ?? 0),
+    monthCycleDay:          body.monthCycleDay ?? 1,
+    updatedAt:              new Date(),
+  }).onConflictDoUpdate({
+    target: profile.id,
+    set: {
       personOneName:          body.personOneName,
       personTwoName:          body.personTwoName,
       currency:               body.currency,
@@ -34,21 +43,8 @@ export default async function handler(req) {
       personTwoMonthlyIncome: String(body.personTwoMonthlyIncome ?? 0),
       monthCycleDay:          body.monthCycleDay ?? 1,
       updatedAt:              new Date(),
-    }).onConflictDoUpdate({
-      target: profile.id,
-      set: {
-        personOneName:          body.personOneName,
-        personTwoName:          body.personTwoName,
-        currency:               body.currency,
-        personOneMonthlyIncome: String(body.personOneMonthlyIncome ?? 0),
-        personTwoMonthlyIncome: String(body.personTwoMonthlyIncome ?? 0),
-        monthCycleDay:          body.monthCycleDay ?? 1,
-        updatedAt:              new Date(),
-      },
-    });
-    const rows = await db.select().from(profile).limit(1);
-    return json(toClient(rows[0]));
-  }
-
-  return json({ error: 'Method not allowed' }, 405);
+    },
+  });
+  const rows = await db.select().from(profile).limit(1);
+  return json(toClient(rows[0]));
 }

@@ -19,57 +19,52 @@ function toClient(row) {
   };
 }
 
-export default async function handler(req) {
-  const id  = req.url.split('/').pop().split('?')[0];
-  const hasId = id && id !== 'recurring';
+export async function GET() {
+  const rows = await db.select().from(recurringTemplates).orderBy(recurringTemplates.createdAt);
+  return json(rows.map(toClient));
+}
 
-  if (req.method === 'GET') {
-    const rows = await db.select().from(recurringTemplates).orderBy(recurringTemplates.createdAt);
-    return json(rows.map(toClient));
-  }
-
-  if (req.method === 'POST') {
-    const body = await req.json();
-    await db.insert(recurringTemplates).values({
-      id:            body.id,
+export async function POST(req) {
+  const body = await req.json();
+  await db.insert(recurringTemplates).values({
+    id:            body.id,
+    type:          body.type,
+    amount:        String(body.amount),
+    categoryId:    body.category,
+    description:   body.description ?? '',
+    person:        body.person ?? null,
+    paymentMethod: body.paymentMethod ?? '',
+    createdAt:     new Date(),
+  }).onConflictDoUpdate({
+    target: recurringTemplates.id,
+    set: {
       type:          body.type,
       amount:        String(body.amount),
       categoryId:    body.category,
       description:   body.description ?? '',
       person:        body.person ?? null,
       paymentMethod: body.paymentMethod ?? '',
-      createdAt:     new Date(),
-    }).onConflictDoUpdate({
-      target: recurringTemplates.id,
-      set: {
-        type:          body.type,
-        amount:        String(body.amount),
-        categoryId:    body.category,
-        description:   body.description ?? '',
-        person:        body.person ?? null,
-        paymentMethod: body.paymentMethod ?? '',
-      },
-    });
-    return json(toClient({ ...body, categoryId: body.category }), 201);
-  }
+    },
+  });
+  return json(toClient({ ...body, categoryId: body.category }), 201);
+}
 
-  if (req.method === 'PUT' && hasId) {
-    const body = await req.json();
-    await db.update(recurringTemplates).set({
-      type:          body.type,
-      amount:        String(body.amount),
-      categoryId:    body.category,
-      description:   body.description ?? '',
-      person:        body.person ?? null,
-      paymentMethod: body.paymentMethod ?? '',
-    }).where(eq(recurringTemplates.id, id));
-    return json(toClient({ ...body, categoryId: body.category }));
-  }
+export async function PUT(req) {
+  const id = req.url.split('/').pop().split('?')[0];
+  const body = await req.json();
+  await db.update(recurringTemplates).set({
+    type:          body.type,
+    amount:        String(body.amount),
+    categoryId:    body.category,
+    description:   body.description ?? '',
+    person:        body.person ?? null,
+    paymentMethod: body.paymentMethod ?? '',
+  }).where(eq(recurringTemplates.id, id));
+  return json(toClient({ ...body, categoryId: body.category }));
+}
 
-  if (req.method === 'DELETE' && hasId) {
-    await db.delete(recurringTemplates).where(eq(recurringTemplates.id, id));
-    return json({ ok: true });
-  }
-
-  return json({ error: 'Method not allowed' }, 405);
+export async function DELETE(req) {
+  const id = req.url.split('/').pop().split('?')[0];
+  await db.delete(recurringTemplates).where(eq(recurringTemplates.id, id));
+  return json({ ok: true });
 }

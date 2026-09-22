@@ -17,45 +17,40 @@ function toClient(row) {
   };
 }
 
-export default async function handler(req) {
-  const id  = req.url.split('/').pop().split('?')[0];
-  const hasId = id && id !== 'categories';
+export async function GET() {
+  const rows = await db.select().from(categories).orderBy(categories.sortOrder);
+  return json(rows.map(toClient));
+}
 
-  if (req.method === 'GET') {
-    const rows = await db.select().from(categories).orderBy(categories.sortOrder);
-    return json(rows.map(toClient));
-  }
+export async function POST(req) {
+  const body = await req.json();
+  await db.insert(categories).values({
+    id:        body.id,
+    label:     body.label,
+    emoji:     body.emoji,
+    type:      body.type,
+    isDefault: body.isDefault ?? false,
+    sortOrder: body.sortOrder ?? 99,
+  }).onConflictDoUpdate({
+    target: categories.id,
+    set: { label: body.label, emoji: body.emoji, type: body.type },
+  });
+  return json(toClient(body), 201);
+}
 
-  if (req.method === 'POST') {
-    const body = await req.json();
-    await db.insert(categories).values({
-      id:        body.id,
-      label:     body.label,
-      emoji:     body.emoji,
-      type:      body.type,
-      isDefault: body.isDefault ?? false,
-      sortOrder: body.sortOrder ?? 99,
-    }).onConflictDoUpdate({
-      target: categories.id,
-      set: { label: body.label, emoji: body.emoji, type: body.type },
-    });
-    return json(toClient(body), 201);
-  }
+export async function PUT(req) {
+  const id = req.url.split('/').pop().split('?')[0];
+  const body = await req.json();
+  await db.update(categories).set({
+    label: body.label,
+    emoji: body.emoji,
+    type:  body.type,
+  }).where(eq(categories.id, id));
+  return json({ ...body, id });
+}
 
-  if (req.method === 'PUT' && hasId) {
-    const body = await req.json();
-    await db.update(categories).set({
-      label: body.label,
-      emoji: body.emoji,
-      type:  body.type,
-    }).where(eq(categories.id, id));
-    return json({ ...body, id });
-  }
-
-  if (req.method === 'DELETE' && hasId) {
-    await db.delete(categories).where(eq(categories.id, id));
-    return json({ ok: true });
-  }
-
-  return json({ error: 'Method not allowed' }, 405);
+export async function DELETE(req) {
+  const id = req.url.split('/').pop().split('?')[0];
+  await db.delete(categories).where(eq(categories.id, id));
+  return json({ ok: true });
 }
