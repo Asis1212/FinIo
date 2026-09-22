@@ -84,6 +84,15 @@ function Categories({ categories, setCategories, budgets, setBudgets, transactio
         <TabBtn $active={tab === "income"} onClick={() => setTab("income")}>הכנסות 📈</TabBtn>
       </TabRow>
 
+      {tab === "expense" && displayed.length > 0 && (
+        <BudgetSummaryBar>
+          <BudgetSummaryLabel>סה״כ תקציב חודשי</BudgetSummaryLabel>
+          <BudgetSummaryVal>
+            {formatCurrency(displayed.reduce((s, c) => s + (budgets[c.id] ?? 0), 0))}
+          </BudgetSummaryVal>
+        </BudgetSummaryBar>
+      )}
+
       <ListWrapper>
         {displayed.length === 0 && (
           <EmptyState>
@@ -600,4 +609,27 @@ const DeleteConfirmBtn = styled.button`
   cursor: pointer;
   font-family: inherit;
   box-shadow: 0 4px 16px rgba(244,114,182,0.3);
+`;
+
+const BudgetSummaryBar = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(99,102,241,0.1);
+  border: 1px solid rgba(99,102,241,0.2);
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+`;
+
+const BudgetSummaryLabel = styled.div`
+  font-size: 13px;
+  font-weight: 600;
+  color: #8b9dc3;
+`;
+
+const BudgetSummaryVal = styled.div`
+  font-size: 20px;
+  font-weight: 800;
+  color: #a5b4fc;
 `;

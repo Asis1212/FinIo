@@ -185,7 +185,7 @@ function Dashboard({ transactions, allTransactions, setActivityPage, budgets, se
 
         {recentExpenses.length === 0 ? (
           <EmptyState>
-            <span style={{ fontSize: 44, marginBottom: 8 }}>🌟</span>
+            <span style={{ fontSize: 44, marginBottom: 8 }}>📭</span>
             <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 14 }}>אין הוצאות החודש</span>
           </EmptyState>
         ) : (
@@ -238,6 +238,12 @@ function Dashboard({ transactions, allTransactions, setActivityPage, budgets, se
               ))}
             </ModalBody>
             <ModalFooter>
+              <BudgetTotal>
+                סה״כ תקציב חודשי:
+                <BudgetTotalVal>
+                  {formatCurrency(Object.values(budgetDraft).reduce((s, v) => s + (parseFloat(v) || 0), 0))}
+                </BudgetTotalVal>
+              </BudgetTotal>
               <SaveBtn onClick={saveBudgets}>שמור תקציב ✓</SaveBtn>
             </ModalFooter>
           </ModalSheet>
@@ -602,6 +608,22 @@ const BudgetInput = styled.input`
 const ModalFooter = styled.div`
   padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
   border-top: 1px solid rgba(255,255,255,0.06);
+`;
+
+const BudgetTotal = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0 14px;
+  font-size: 14px;
+  color: #8b9dc3;
+  font-weight: 600;
+`;
+
+const BudgetTotalVal = styled.span`
+  font-size: 18px;
+  font-weight: 800;
+  color: #a5b4fc;
 `;
 
 const SaveBtn = styled.button`

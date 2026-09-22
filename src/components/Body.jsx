@@ -98,6 +98,7 @@ function Body({
           setToast={setToast}
           editTx={editTx}
           replaceTransaction={replaceTransaction}
+          removeTransaction={(id) => { removeTransaction(id); handleSetActivityPage("history"); }}
           categories={categories}
           profile={profile}
         />
@@ -132,6 +133,7 @@ function Body({
           setToast={setToast}
           editTx={editTx}
           replaceTransaction={replaceRecurring}
+          removeTransaction={(id) => { removeRecurring(id); handleSetActivityPage("recurring"); }}
           categories={categories}
           profile={profile}
           recurringLocked

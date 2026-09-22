@@ -10,7 +10,7 @@ const PAYMENT_METHODS = [
   { val: "check",    label: "צ׳ק",     emoji: "📝" },
 ];
 
-function TransactionForm({ setActivityPage, toast, setToast, addTransaction, editTx, replaceTransaction, categories, profile, recurringLocked }) {
+function TransactionForm({ setActivityPage, toast, setToast, addTransaction, editTx, replaceTransaction, removeTransaction, categories, profile, recurringLocked }) {
   const isEdit = !!editTx;
 
   const expenseCategories = categories?.filter(c => c.type === "expense") ?? [];
@@ -94,7 +94,10 @@ function TransactionForm({ setActivityPage, toast, setToast, addTransaction, edi
       <PageHeader>
         <BackBtn onClick={handleBack}>{step === 1 ? "✕" : "‹"}</BackBtn>
         <PageTitle>{pageTitle}</PageTitle>
-        <StepLabel>{step} / {totalSteps}</StepLabel>
+        {isEdit && removeTransaction
+          ? <DeleteTxBtn onClick={() => removeTransaction(editTx.id)}>🗑️</DeleteTxBtn>
+          : <StepLabel>{step} / {totalSteps}</StepLabel>
+        }
       </PageHeader>
 
       {/* Progress bar */}
@@ -339,6 +342,21 @@ const StepLabel = styled.div`
   text-align: center;
 `;
 
+const DeleteTxBtn = styled.button`
+  background: rgba(244,114,182,0.12);
+  border: 1px solid rgba(244,114,182,0.2);
+  color: #f472b6;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  &:active { background: rgba(244,114,182,0.25); }
+`;
+
 const ProgressTrack = styled.div`
   height: 3px;
   background: rgba(255,255,255,0.06);
@@ -517,6 +535,7 @@ const DateInput = styled.input`
   font-family: inherit;
   outline: none;
   box-sizing: border-box;
+  display: block;
 
   &:focus { border-color: rgba(99,102,241,0.4); }
 `;

@@ -157,7 +157,7 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
                 🔍 {hasActiveFilters ? "פעיל" : "סינון"}
               </IconBtn>
               {filteredTransactions.length > 0 && (
-                <IconBtn onClick={exportCSV}>📊 דוח</IconBtn>
+                <IconBtn onClick={exportCSV}>📄 PDF</IconBtn>
               )}
             </CardActions>
           </CardHeader>
