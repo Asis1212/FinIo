@@ -11,8 +11,8 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
     "drizzle-orm": "^0.41.0",
-    "pg": "^8.13.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "styled-components": "^6.4.1"
