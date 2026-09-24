@@ -125,23 +125,6 @@ function Dashboard({ transactions, allTransactions, setActivityPage, budgets, se
         <MonthArrow onClick={goForward} $disabled={!canGoForward}>›</MonthArrow>
       </MonthSwitcher>
 
-      {/* Budget warnings */}
-      {catData.filter(c => c.status !== "ok").length > 0 && (
-        <WarningsBlock>
-          {catData.filter(c => c.status !== "ok").map(cat => (
-            <WarningRow key={cat.id} $over={cat.status === "over"}>
-              <span>{cat.emoji}</span>
-              <WarningText>
-                {cat.label} — {Math.round(cat.pct)}%{" "}
-                {cat.status === "over" ? "מעל התקציב" : "מהתקציב"}
-              </WarningText>
-              <WarningBadge $over={cat.status === "over"}>
-                {cat.status === "over" ? "חריגה" : "אזהרה"}
-              </WarningBadge>
-            </WarningRow>
-          ))}
-        </WarningsBlock>
-      )}
 
       {/* Category donuts grid */}
       {activeCats.length > 0 ? (
@@ -272,42 +255,6 @@ function Dashboard({ transactions, allTransactions, setActivityPage, budgets, se
 }
 
 export default Dashboard;
-
-// ── Budget warnings ───────────────────────────────────────────────────────────
-
-const WarningsBlock = styled.div`
-  margin: 0 16px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-`;
-
-const WarningRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: ${({ $over }) => $over ? "rgba(244,114,182,0.08)" : "rgba(251,191,36,0.07)"};
-  border: 1px solid ${({ $over }) => $over ? "rgba(244,114,182,0.25)" : "rgba(251,191,36,0.22)"};
-  border-radius: 14px;
-  padding: 11px 14px;
-`;
-
-const WarningText = styled.div`
-  flex: 1;
-  font-size: 13px;
-  font-weight: 600;
-  color: #c7d2e8;
-`;
-
-const WarningBadge = styled.div`
-  font-size: 11px;
-  font-weight: 700;
-  padding: 3px 9px;
-  border-radius: 8px;
-  background: ${({ $over }) => $over ? "rgba(244,114,182,0.18)" : "rgba(251,191,36,0.15)"};
-  color: ${({ $over }) => $over ? "#f472b6" : "#fbbf24"};
-  flex-shrink: 0;
-`;
 
 // ── Month switcher ────────────────────────────────────────────────────────────
 
