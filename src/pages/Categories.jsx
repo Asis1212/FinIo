@@ -83,12 +83,20 @@ function Categories({ categories, setCategories, budgets, setBudgets, transactio
       </TabRow>
 
       {tab === "expense" && displayed.length > 0 && (
-        <BudgetSummaryBar>
-          <BudgetSummaryLabel>סה״כ תקציב חודשי</BudgetSummaryLabel>
-          <BudgetSummaryVal>
-            {formatCurrency(displayed.reduce((s, c) => s + (budgets[c.id] ?? 0), 0))}
-          </BudgetSummaryVal>
-        </BudgetSummaryBar>
+        <SummaryBlock>
+          <BudgetSummaryBar>
+            <BudgetSummaryLabel>סה״כ תקציב חודשי</BudgetSummaryLabel>
+            <BudgetSummaryVal>
+              {formatCurrency(displayed.reduce((s, c) => s + (budgets[c.id] ?? 0), 0))}
+            </BudgetSummaryVal>
+          </BudgetSummaryBar>
+          <SpentSummaryBar>
+            <SpentSummaryLabel>סה״כ הוצאות החודש</SpentSummaryLabel>
+            <SpentSummaryVal>
+              {formatCurrency(displayed.reduce((s, c) => s + getSpent(c.id), 0))}
+            </SpentSummaryVal>
+          </SpentSummaryBar>
+        </SummaryBlock>
       )}
 
       <ListWrapper>
@@ -609,6 +617,13 @@ const DeleteConfirmBtn = styled.button`
   box-shadow: 0 4px 16px rgba(244,114,182,0.3);
 `;
 
+const SummaryBlock = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+`;
+
 const BudgetSummaryBar = styled.div`
   display: flex;
   justify-content: space-between;
@@ -617,7 +632,6 @@ const BudgetSummaryBar = styled.div`
   border: 1px solid rgba(99,102,241,0.2);
   border-radius: 14px;
   padding: 12px 16px;
-  margin-bottom: 14px;
 `;
 
 const BudgetSummaryLabel = styled.div`
@@ -630,4 +644,26 @@ const BudgetSummaryVal = styled.div`
   font-size: 20px;
   font-weight: 800;
   color: #a5b4fc;
+`;
+
+const SpentSummaryBar = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(244,114,182,0.08);
+  border: 1px solid rgba(244,114,182,0.18);
+  border-radius: 14px;
+  padding: 12px 16px;
+`;
+
+const SpentSummaryLabel = styled.div`
+  font-size: 13px;
+  font-weight: 600;
+  color: #8b9dc3;
+`;
+
+const SpentSummaryVal = styled.div`
+  font-size: 20px;
+  font-weight: 800;
+  color: #f472b6;
 `;
