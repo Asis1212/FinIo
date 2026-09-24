@@ -1,15 +1,47 @@
 import styled from 'styled-components'
 
+const HomeIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z" />
+    <path d="M9 21V12h6v9" />
+  </svg>
+)
+
+const HistoryIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="9" />
+    <polyline points="12 7 12 12 15 15" />
+  </svg>
+)
+
+const RecurringIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="17 1 21 5 17 9" />
+    <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+    <polyline points="7 23 3 19 7 15" />
+    <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+  </svg>
+)
+
+const CategoriesIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="3" width="7" height="7" rx="1" />
+    <rect x="3" y="14" width="7" height="7" rx="1" />
+    <rect x="14" y="14" width="7" height="7" rx="1" />
+  </svg>
+)
+
 const NAV_ITEMS = [
-  { val: "dashboard",  label: "בית",       icon: "🏠" },
-  { val: "history",    label: "היסטוריה",  icon: "📋" },
-  { val: "recurring",  label: "קבוע",      icon: "🔄" },
-  { val: "categories", label: "קטגוריות",  icon: "🏷️" },
-];
+  { val: "dashboard",  label: "בית",      Icon: HomeIcon },
+  { val: "history",    label: "היסטוריה", Icon: HistoryIcon },
+  { val: "recurring",  label: "קבוע",     Icon: RecurringIcon },
+  { val: "categories", label: "קטגוריות", Icon: CategoriesIcon },
+]
 
 function Navbar({activePage, onPageChange}) {
-  const leftItems  = [NAV_ITEMS[0], NAV_ITEMS[1]];
-  const rightItems = [NAV_ITEMS[2], NAV_ITEMS[3]];
+  const leftItems  = [NAV_ITEMS[0], NAV_ITEMS[1]]
+  const rightItems = [NAV_ITEMS[2], NAV_ITEMS[3]]
 
   return (
     <Container>
@@ -19,7 +51,7 @@ function Navbar({activePage, onPageChange}) {
           $active={activePage === item.val}
           onClick={() => onPageChange(item.val)}
         >
-          <BtnIcon>{item.icon}</BtnIcon>
+          <BtnIcon $active={activePage === item.val}><item.Icon /></BtnIcon>
           <BtnLabel $active={activePage === item.val}>{item.label}</BtnLabel>
           {activePage === item.val && <ActiveDot />}
         </NavButton>
@@ -41,7 +73,7 @@ function Navbar({activePage, onPageChange}) {
           $active={activePage === item.val}
           onClick={() => onPageChange(item.val)}
         >
-          <BtnIcon>{item.icon}</BtnIcon>
+          <BtnIcon $active={activePage === item.val}><item.Icon /></BtnIcon>
           <BtnLabel $active={activePage === item.val}>{item.label}</BtnLabel>
           {activePage === item.val && <ActiveDot />}
         </NavButton>
@@ -141,8 +173,11 @@ const AddIcon = styled.span`
 `;
 
 const BtnIcon = styled.span`
-  font-size: 18px;
-  transition: transform 0.15s;
+  color: ${({ $active }) => $active ? "#a5b4fc" : "#4a5568"};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
 `;
 
 const BtnLabel = styled.span`

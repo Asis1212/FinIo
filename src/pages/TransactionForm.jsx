@@ -218,24 +218,6 @@ function TransactionForm({ setActivityPage, toast, setToast, addTransaction, edi
             ))}
           </PaymentGrid>
 
-          {!recurringLocked && (
-            <RecurringRow
-              $on={!!formData.recurring}
-              onClick={() => setFormData(f => ({ ...f, recurring: !f.recurring, installments: false }))}
-            >
-              <RecurringLeft>
-                <span style={{ fontSize: 20 }}>🔄</span>
-                <div>
-                  <RecurringTitle>חוזר כל חודש</RecurringTitle>
-                  <RecurringSub>יתווסף אוטומטית</RecurringSub>
-                </div>
-              </RecurringLeft>
-              <Toggle $on={!!formData.recurring}>
-                <ToggleThumb $on={!!formData.recurring} />
-              </Toggle>
-            </RecurringRow>
-          )}
-
           {!recurringLocked && !isEdit && (
             <RecurringRow
               $on={!!formData.installments}

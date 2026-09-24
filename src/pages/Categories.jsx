@@ -1,9 +1,10 @@
 import { useState } from "react";
 import styled from "styled-components";
+import { isInCycle } from "../utils/monthUtils";
 
 const EMOJI_LIST = ["🛒","🏠","🚗","📚","🤖","🎉","🏥","💊","🛍️","🔔","🏋","💍","🐷","📦","💼","🎁","➕","✈️","🍕","☕","🎮","💅","🐶","🌿","💡","🎓","🏖️","💳","🎵","📱"];
 
-function Categories({ categories, setCategories, budgets, setBudgets, transactions, selectedMonth }) {
+function Categories({ categories, setCategories, budgets, setBudgets, transactions, selectedMonth, cycleDay = 1 }) {
   const [tab, setTab] = useState("expense");
   const [showModal, setShowModal] = useState(false);
   const [editingCat, setEditingCat] = useState(null);
@@ -14,10 +15,7 @@ function Categories({ categories, setCategories, budgets, setBudgets, transactio
 
   const getSpent = (catId) => {
     const monthTx = selectedMonth
-      ? transactions.filter(tx => {
-          const l = new Intl.DateTimeFormat("he-IL", { month: "long", year: "numeric" }).format(new Date(tx.date));
-          return l === selectedMonth;
-        })
+      ? transactions.filter(tx => isInCycle(tx.date, selectedMonth, cycleDay))
       : transactions;
     return monthTx
       .filter(tx => tx.category === catId && tx.type === "expense")
