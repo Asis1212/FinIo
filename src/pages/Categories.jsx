@@ -2,7 +2,7 @@ import { useState } from "react";
 import styled from "styled-components";
 import { isInCycle } from "../utils/monthUtils";
 
-const EMOJI_LIST = ["🛒","🏠","🚗","📚","🤖","🎉","🏥","💊","🛍️","🔔","🏋","💍","🐷","📦","💼","🎁","➕","✈️","🍕","☕","🎮","💅","🐶","🌿","💡","🎓","🏖️","💳","🎵","📱"];
+const EMOJI_LIST = ["🛒","🏠","🚗","📚","🤖","🎉","🏥","💊","🛍️","🔔","🏋","💍","🐷","📦","💼","🎁","➕","✈️","🍕","☕","🎮","💅","✂️","🐶","🌿","💡","🎓","🏖️","💳","🎵","📱"];
 
 function Categories({ categories, setCategories, budgets, setBudgets, transactions, selectedMonth, cycleDay = 1 }) {
   const [tab, setTab] = useState("expense");
@@ -167,6 +167,18 @@ function Categories({ categories, setCategories, budgets, setBudgets, transactio
 
               <FieldGroup>
                 <FieldLabel>אמוג׳י</FieldLabel>
+                <EmojiCustomRow>
+                  <EmojiPreview>{draft.emoji}</EmojiPreview>
+                  <EmojiCustomInput
+                    placeholder="הקלד אמוג׳י משלך..."
+                    value={EMOJI_LIST.includes(draft.emoji) ? "" : draft.emoji}
+                    onChange={e => {
+                      const raw = e.target.value;
+                      const seg = [...new Intl.Segmenter().segment(raw)];
+                      if (seg.length > 0) setDraft(d => ({ ...d, emoji: seg[seg.length - 1].segment }));
+                    }}
+                  />
+                </EmojiCustomRow>
                 <EmojiGrid>
                   {EMOJI_LIST.map(em => (
                     <EmojiBtn
@@ -486,6 +498,42 @@ const TypePill = styled.button`
   cursor: pointer;
   font-family: inherit;
   transition: all 0.15s;
+`;
+
+const EmojiCustomRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+`;
+
+const EmojiPreview = styled.div`
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(99,102,241,0.2);
+  border: 2px solid #6366f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+`;
+
+const EmojiCustomInput = styled.input`
+  flex: 1;
+  padding: 10px 12px;
+  border: 2px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  font-size: 20px;
+  font-family: inherit;
+  background: #1e2535;
+  color: #f0f4ff;
+  outline: none;
+  text-align: right;
+
+  &::placeholder { font-size: 13px; color: #2d3748; }
+  &:focus { border-color: #6366f1; }
 `;
 
 const EmojiGrid = styled.div`
