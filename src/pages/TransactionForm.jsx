@@ -58,9 +58,14 @@ function TransactionForm({ setActivityPage, toast, setToast, addTransaction, edi
       const groupId = crypto.randomUUID();
       const [year, month, day] = formData.date.split("-").map(Number);
       for (let i = 0; i < count; i++) {
-        const m = ((month - 1 + i) % 12) + 1;
-        const y = year + Math.floor((month - 1 + i) / 12);
-        const dateStr = `${y}-${String(m).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        let dateStr;
+        if (i === 0) {
+          dateStr = formData.date;
+        } else {
+          const m = ((month - 1 + i) % 12) + 1;
+          const y = year + Math.floor((month - 1 + i) / 12);
+          dateStr = `${y}-${String(m).padStart(2, "0")}-01`;
+        }
         addTransaction({
           id: crypto.randomUUID(),
           ...formData,
