@@ -71,20 +71,25 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
       ? monthFiltered
       : monthFiltered.filter((tx) => tx.person === active || tx.person === "both");
 
-  const filteredTransactions = personFiltered.filter((tx) => {
-    if (typeTab !== "all" && tx.type !== typeTab) return false;
-    const cat = getCatInfo(tx.type, tx.category);
-    if (filters.search) {
-      const q = filters.search.toLowerCase();
-      if (!cat.label.toLowerCase().includes(q) && !(tx.description ?? "").toLowerCase().includes(q)) return false;
-    }
-    if (filters.dateFrom && tx.date < filters.dateFrom) return false;
-    if (filters.dateTo && tx.date > filters.dateTo) return false;
-    if (filters.category && tx.category !== filters.category) return false;
-    if (filters.minAmount && Number(tx.amount) < Number(filters.minAmount)) return false;
-    if (filters.maxAmount && Number(tx.amount) > Number(filters.maxAmount)) return false;
-    return true;
-  });
+  const filteredTransactions = personFiltered
+    .filter((tx) => {
+      if (typeTab !== "all" && tx.type !== typeTab) return false;
+      const cat = getCatInfo(tx.type, tx.category);
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
+        if (!cat.label.toLowerCase().includes(q) && !(tx.description ?? "").toLowerCase().includes(q)) return false;
+      }
+      if (filters.dateFrom && tx.date < filters.dateFrom) return false;
+      if (filters.dateTo && tx.date > filters.dateTo) return false;
+      if (filters.category && tx.category !== filters.category) return false;
+      if (filters.minAmount && Number(tx.amount) < Number(filters.minAmount)) return false;
+      if (filters.maxAmount && Number(tx.amount) > Number(filters.maxAmount)) return false;
+      return true;
+    })
+    .sort((a, b) => b.date.localeCompare(a.date));
+
+  const recurringTxs = filteredTransactions.filter((tx) => tx.recurring);
+  const regularTxs   = filteredTransactions.filter((tx) => !tx.recurring);
 
   const handleDelete = (tx) => {
     removeTransaction(tx.id);
@@ -219,26 +224,58 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
               <span style={{ color: "#4a5568" }}>אין עסקאות</span>
             </EmptyState>
           ) : (
-            filteredTransactions.map((tx) => {
-              const cat = getCatInfo(tx.type, tx.category);
-              return (
-                <SwipeableRow key={tx.id} onDelete={() => handleDelete(tx)}>
-                  <TxRow>
-                    <TxIcon $type={tx.type}>{cat.emoji}</TxIcon>
-                    <TxInfo onClick={() => setActivityPage({ page: "edit", tx })}>
-                      <TxTitle>{cat.label}</TxTitle>
-                      {tx.description && <TxDesc>{tx.description}</TxDesc>}
-                      <TxMeta>
-                        {tx.date.split("-").reverse().join("/")}{tx.person && tx.person !== "both" ? ` · ${tx.person === "personOne" ? p1Name : p2Name}` : ""}{tx.installmentTotal ? ` · תשלום ${tx.installmentIndex}/${tx.installmentTotal}` : ""}
-                      </TxMeta>
-                    </TxInfo>
-                    <TxAmount $type={tx.type}>
-                      {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
-                    </TxAmount>
-                  </TxRow>
-                </SwipeableRow>
-              );
-            })
+            <>
+              {recurringTxs.length > 0 && (
+                <>
+                  <SectionLabel>🔁 קבועות</SectionLabel>
+                  {recurringTxs.map((tx) => {
+                    const cat = getCatInfo(tx.type, tx.category);
+                    return (
+                      <SwipeableRow key={tx.id} onDelete={() => handleDelete(tx)}>
+                        <TxRow>
+                          <TxIcon $type={tx.type}>{cat.emoji}</TxIcon>
+                          <TxInfo onClick={() => setActivityPage({ page: "edit", tx })}>
+                            <TxTitle>{cat.label}</TxTitle>
+                            {tx.description && <TxDesc>{tx.description}</TxDesc>}
+                            <TxMeta>
+                              {tx.date.split("-").reverse().join("/")}{tx.person && tx.person !== "both" ? ` · ${tx.person === "personOne" ? p1Name : p2Name}` : ""}
+                            </TxMeta>
+                          </TxInfo>
+                          <TxAmount $type={tx.type}>
+                            {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
+                          </TxAmount>
+                        </TxRow>
+                      </SwipeableRow>
+                    );
+                  })}
+                </>
+              )}
+              {regularTxs.length > 0 && (
+                <>
+                  {recurringTxs.length > 0 && <SectionLabel>📋 חד פעמיות</SectionLabel>}
+                  {regularTxs.map((tx) => {
+                    const cat = getCatInfo(tx.type, tx.category);
+                    return (
+                      <SwipeableRow key={tx.id} onDelete={() => handleDelete(tx)}>
+                        <TxRow>
+                          <TxIcon $type={tx.type}>{cat.emoji}</TxIcon>
+                          <TxInfo onClick={() => setActivityPage({ page: "edit", tx })}>
+                            <TxTitle>{cat.label}</TxTitle>
+                            {tx.description && <TxDesc>{tx.description}</TxDesc>}
+                            <TxMeta>
+                              {tx.date.split("-").reverse().join("/")}{tx.person && tx.person !== "both" ? ` · ${tx.person === "personOne" ? p1Name : p2Name}` : ""}{tx.installmentTotal ? ` · תשלום ${tx.installmentIndex}/${tx.installmentTotal}` : ""}
+                            </TxMeta>
+                          </TxInfo>
+                          <TxAmount $type={tx.type}>
+                            {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
+                          </TxAmount>
+                        </TxRow>
+                      </SwipeableRow>
+                    );
+                  })}
+                </>
+              )}
+            </>
           )}
         </Card>
       </Wrapper>
@@ -460,6 +497,15 @@ const SwipeContent = styled.div`
   transition: ${({ $swiping }) => $swiping ? "none" : "transform 0.25s ease"};
   touch-action: pan-y;
   cursor: grab;
+`;
+
+const SectionLabel = styled.div`
+  font-size: 12px;
+  font-weight: 700;
+  color: #4a5568;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 10px 0 4px;
 `;
 
 const TxRow = styled.div`
