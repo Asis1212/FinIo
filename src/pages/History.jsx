@@ -225,31 +225,6 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
             </EmptyState>
           ) : (
             <>
-              {recurringTxs.length > 0 && (
-                <>
-                  <SectionLabel>🔁 קבועות</SectionLabel>
-                  {recurringTxs.map((tx) => {
-                    const cat = getCatInfo(tx.type, tx.category);
-                    return (
-                      <SwipeableRow key={tx.id} onDelete={() => handleDelete(tx)}>
-                        <TxRow>
-                          <TxIcon $type={tx.type}>{cat.emoji}</TxIcon>
-                          <TxInfo onClick={() => setActivityPage({ page: "edit", tx })}>
-                            <TxTitle>{cat.label}</TxTitle>
-                            {tx.description && <TxDesc>{tx.description}</TxDesc>}
-                            <TxMeta>
-                              {tx.date.split("-").reverse().join("/")}{tx.person && tx.person !== "both" ? ` · ${tx.person === "personOne" ? p1Name : p2Name}` : ""}
-                            </TxMeta>
-                          </TxInfo>
-                          <TxAmount $type={tx.type}>
-                            {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
-                          </TxAmount>
-                        </TxRow>
-                      </SwipeableRow>
-                    );
-                  })}
-                </>
-              )}
               {regularTxs.length > 0 && (
                 <>
                   {recurringTxs.length > 0 && <SectionLabel>📋 חד פעמיות</SectionLabel>}
@@ -264,6 +239,31 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
                             {tx.description && <TxDesc>{tx.description}</TxDesc>}
                             <TxMeta>
                               {tx.date.split("-").reverse().join("/")}{tx.person && tx.person !== "both" ? ` · ${tx.person === "personOne" ? p1Name : p2Name}` : ""}{tx.installmentTotal ? ` · תשלום ${tx.installmentIndex}/${tx.installmentTotal}` : ""}
+                            </TxMeta>
+                          </TxInfo>
+                          <TxAmount $type={tx.type}>
+                            {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
+                          </TxAmount>
+                        </TxRow>
+                      </SwipeableRow>
+                    );
+                  })}
+                </>
+              )}
+              {recurringTxs.length > 0 && (
+                <>
+                  <SectionLabel>🔁 קבועות</SectionLabel>
+                  {recurringTxs.map((tx) => {
+                    const cat = getCatInfo(tx.type, tx.category);
+                    return (
+                      <SwipeableRow key={tx.id} onDelete={() => handleDelete(tx)}>
+                        <TxRow>
+                          <TxIcon $type={tx.type}>{cat.emoji}</TxIcon>
+                          <TxInfo onClick={() => setActivityPage({ page: "edit", tx })}>
+                            <TxTitle>{cat.label}</TxTitle>
+                            {tx.description && <TxDesc>{tx.description}</TxDesc>}
+                            <TxMeta>
+                              {tx.date.split("-").reverse().join("/")}{tx.person && tx.person !== "both" ? ` · ${tx.person === "personOne" ? p1Name : p2Name}` : ""}
                             </TxMeta>
                           </TxInfo>
                           <TxAmount $type={tx.type}>

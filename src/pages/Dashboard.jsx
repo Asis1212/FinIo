@@ -79,7 +79,7 @@ function Dashboard({ transactions, allTransactions, setActivityPage, budgets, se
   // 5 most recent expense transactions this month
   const recentExpenses = useMemo(() =>
     monthTx
-      .filter(tx => tx.type === "expense")
+      .filter(tx => tx.type === "expense" && !tx.recurring)
       .sort((a, b) => b.date.localeCompare(a.date))
       .slice(0, 5),
     [monthTx]
