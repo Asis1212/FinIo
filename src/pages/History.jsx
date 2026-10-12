@@ -224,60 +224,56 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
               <span style={{ color: "#4a5568" }}>אין עסקאות</span>
             </EmptyState>
           ) : (
-            <>
-              {regularTxs.length > 0 && (
-                <>
-                  {recurringTxs.length > 0 && <SectionLabel>📋 חד פעמיות</SectionLabel>}
-                  {regularTxs.map((tx) => {
-                    const cat = getCatInfo(tx.type, tx.category);
-                    return (
-                      <SwipeableRow key={tx.id} onDelete={() => handleDelete(tx)}>
-                        <TxRow>
-                          <TxIcon $type={tx.type}>{cat.emoji}</TxIcon>
-                          <TxInfo onClick={() => setActivityPage({ page: "edit", tx })}>
-                            <TxTitle>{cat.label}</TxTitle>
-                            {tx.description && <TxDesc>{tx.description}</TxDesc>}
-                            <TxMeta>
-                              {tx.date.split("-").reverse().join("/")}{tx.person && tx.person !== "both" ? ` · ${tx.person === "personOne" ? p1Name : p2Name}` : ""}{tx.installmentTotal ? ` · תשלום ${tx.installmentIndex}/${tx.installmentTotal}` : ""}
-                            </TxMeta>
-                          </TxInfo>
-                          <TxAmount $type={tx.type}>
-                            {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
-                          </TxAmount>
-                        </TxRow>
-                      </SwipeableRow>
-                    );
-                  })}
-                </>
-              )}
-              {recurringTxs.length > 0 && (
-                <>
-                  <SectionLabel>🔁 קבועות</SectionLabel>
-                  {recurringTxs.map((tx) => {
-                    const cat = getCatInfo(tx.type, tx.category);
-                    return (
-                      <SwipeableRow key={tx.id} onDelete={() => handleDelete(tx)}>
-                        <TxRow>
-                          <TxIcon $type={tx.type}>{cat.emoji}</TxIcon>
-                          <TxInfo onClick={() => setActivityPage({ page: "edit", tx })}>
-                            <TxTitle>{cat.label}</TxTitle>
-                            {tx.description && <TxDesc>{tx.description}</TxDesc>}
-                            <TxMeta>
-                              {tx.date.split("-").reverse().join("/")}{tx.person && tx.person !== "both" ? ` · ${tx.person === "personOne" ? p1Name : p2Name}` : ""}
-                            </TxMeta>
-                          </TxInfo>
-                          <TxAmount $type={tx.type}>
-                            {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
-                          </TxAmount>
-                        </TxRow>
-                      </SwipeableRow>
-                    );
-                  })}
-                </>
-              )}
-            </>
+            regularTxs.map((tx) => {
+              const cat = getCatInfo(tx.type, tx.category);
+              return (
+                <SwipeableRow key={tx.id} onDelete={() => handleDelete(tx)}>
+                  <TxRow>
+                    <TxIcon $type={tx.type}>{cat.emoji}</TxIcon>
+                    <TxInfo onClick={() => setActivityPage({ page: "edit", tx })}>
+                      <TxTitle>{cat.label}</TxTitle>
+                      {tx.description && <TxDesc>{tx.description}</TxDesc>}
+                      <TxMeta>
+                        {tx.date.split("-").reverse().join("/")}{tx.person && tx.person !== "both" ? ` · ${tx.person === "personOne" ? p1Name : p2Name}` : ""}{tx.installmentTotal ? ` · תשלום ${tx.installmentIndex}/${tx.installmentTotal}` : ""}
+                      </TxMeta>
+                    </TxInfo>
+                    <TxAmount $type={tx.type}>
+                      {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
+                    </TxAmount>
+                  </TxRow>
+                </SwipeableRow>
+              );
+            })
           )}
         </Card>
+
+        {recurringTxs.length > 0 && (
+          <RecurringCard>
+            <CardHeader>
+              <RecurringCardTitle>⟳ קבועות</RecurringCardTitle>
+            </CardHeader>
+            {recurringTxs.map((tx) => {
+              const cat = getCatInfo(tx.type, tx.category);
+              return (
+                <SwipeableRow key={tx.id} onDelete={() => handleDelete(tx)}>
+                  <TxRow>
+                    <TxIcon $type={tx.type}>{cat.emoji}</TxIcon>
+                    <TxInfo onClick={() => setActivityPage({ page: "edit", tx })}>
+                      <TxTitle>{cat.label}</TxTitle>
+                      {tx.description && <TxDesc>{tx.description}</TxDesc>}
+                      <TxMeta>
+                        {tx.date.split("-").reverse().join("/")}{tx.person && tx.person !== "both" ? ` · ${tx.person === "personOne" ? p1Name : p2Name}` : ""}
+                      </TxMeta>
+                    </TxInfo>
+                    <TxAmount $type={tx.type}>
+                      {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
+                    </TxAmount>
+                  </TxRow>
+                </SwipeableRow>
+              );
+            })}
+          </RecurringCard>
+        )}
       </Wrapper>
 
       {undoItem && (
@@ -499,13 +495,19 @@ const SwipeContent = styled.div`
   cursor: grab;
 `;
 
-const SectionLabel = styled.div`
-  font-size: 12px;
+const RecurringCard = styled.div`
+  background: #161b27;
+  border-radius: 20px;
+  padding: 18px 16px;
+  border: 1px solid rgba(99,102,241,0.18);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+  margin-top: 12px;
+`;
+
+const RecurringCardTitle = styled.div`
   font-weight: 700;
-  color: #4a5568;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: 10px 0 4px;
+  font-size: 17px;
+  color: #a5b4fc;
 `;
 
 const TxRow = styled.div`
