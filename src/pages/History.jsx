@@ -45,6 +45,7 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
   const [undoTimer, setUndoTimer] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({ search: "", dateFrom: "", dateTo: "", category: "", minAmount: "", maxAmount: "", paymentMethod: "" });
+  const sheetDragY = useRef(null);
 
   const allCategories = categories ?? [];
   const expenseCategories = allCategories.filter(c => c.type === "expense");
@@ -247,17 +248,12 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
       )}
 
       {showFilters && (
-        <FilterOverlay
-          onClick={() => setShowFilters(false)}
-          onTouchEnd={() => setShowFilters(false)}
-        >
-          <FilterSheet
-            onClick={e => e.stopPropagation()}
-            onTouchEnd={e => e.stopPropagation()}
-          >
+        <FilterOverlay onClick={() => setShowFilters(false)}>
+          <FilterSheet onClick={e => e.stopPropagation()}>
             <FilterSheetHandle
-              onTouchStart={e => { e._sheetY = e.touches[0].clientY; }}
-              onTouchMove={e => { if (e.touches[0].clientY - e._sheetY > 60) setShowFilters(false); }}
+              onTouchStart={e => { sheetDragY.current = e.touches[0].clientY; }}
+              onTouchMove={e => { if (sheetDragY.current !== null && e.touches[0].clientY - sheetDragY.current > 60) setShowFilters(false); }}
+              onTouchEnd={() => { sheetDragY.current = null; }}
             />
             <FilterSheetHeader>
               <FilterSheetTitle>סינון עסקאות</FilterSheetTitle>
