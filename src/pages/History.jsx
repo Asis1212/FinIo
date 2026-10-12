@@ -160,7 +160,12 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
             <CardActions>
               {selectedMonth && <MonthBadge>{selectedMonth}</MonthBadge>}
               <IconBtn $active={showFilters || hasActiveFilters} onClick={() => setShowFilters(v => !v)}>
-                🔍 {hasActiveFilters ? "פעיל" : "סינון"}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 4, verticalAlign: "middle" }}>
+                  <line x1="4" y1="6" x2="20" y2="6" />
+                  <line x1="8" y1="12" x2="16" y2="12" />
+                  <line x1="11" y1="18" x2="13" y2="18" />
+                </svg>
+                {hasActiveFilters ? "פעיל" : "סינון"}
               </IconBtn>
               {filteredTransactions.length > 0 && (
                 <IconBtn onClick={exportCSV}>📄 PDF</IconBtn>
@@ -242,9 +247,18 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
       )}
 
       {showFilters && (
-        <FilterOverlay onClick={() => setShowFilters(false)}>
-          <FilterSheet onClick={e => e.stopPropagation()}>
-            <FilterSheetHandle />
+        <FilterOverlay
+          onClick={() => setShowFilters(false)}
+          onTouchEnd={() => setShowFilters(false)}
+        >
+          <FilterSheet
+            onClick={e => e.stopPropagation()}
+            onTouchEnd={e => e.stopPropagation()}
+          >
+            <FilterSheetHandle
+              onTouchStart={e => { e._sheetY = e.touches[0].clientY; }}
+              onTouchMove={e => { if (e.touches[0].clientY - e._sheetY > 60) setShowFilters(false); }}
+            />
             <FilterSheetHeader>
               <FilterSheetTitle>סינון עסקאות</FilterSheetTitle>
               {hasActiveFilters && (
@@ -485,10 +499,13 @@ const FilterSheet = styled.div`
 const FilterSheetHandle = styled.div`
   width: 36px;
   height: 4px;
-  background: rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.18);
   border-radius: 2px;
-  margin: 12px auto 0;
+  margin: 12px auto 4px;
   flex-shrink: 0;
+  padding: 10px 40px;
+  background-clip: content-box;
+  cursor: grab;
 `;
 
 const FilterSheetHeader = styled.div`
