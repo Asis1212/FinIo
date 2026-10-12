@@ -44,7 +44,7 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
   const [undoItem, setUndoItem] = useState(null);
   const [undoTimer, setUndoTimer] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState({ search: "", dateFrom: "", dateTo: "", category: "", minAmount: "", maxAmount: "" });
+  const [filters, setFilters] = useState({ search: "", dateFrom: "", dateTo: "", category: "", minAmount: "", maxAmount: "", paymentMethod: "" });
 
   const allCategories = categories ?? [];
   const expenseCategories = allCategories.filter(c => c.type === "expense");
@@ -52,7 +52,7 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
 
   const setFilter = (key, val) => setFilters((f) => ({ ...f, [key]: val }));
   const hasActiveFilters = Object.values(filters).some((v) => v !== "");
-  const clearFilters = () => setFilters({ search: "", dateFrom: "", dateTo: "", category: "", minAmount: "", maxAmount: "" });
+  const clearFilters = () => setFilters({ search: "", dateFrom: "", dateTo: "", category: "", minAmount: "", maxAmount: "", paymentMethod: "" });
 
   const getCatInfo = (type, categoryId) => {
     const list = type === "income" ? incomeCategories : expenseCategories;
@@ -84,6 +84,7 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
       if (filters.category && tx.category !== filters.category) return false;
       if (filters.minAmount && Number(tx.amount) < Number(filters.minAmount)) return false;
       if (filters.maxAmount && Number(tx.amount) > Number(filters.maxAmount)) return false;
+      if (filters.paymentMethod && tx.paymentMethod !== filters.paymentMethod) return false;
       return true;
     })
     .sort((a, b) => b.date.localeCompare(a.date));
@@ -167,57 +168,6 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
             </CardActions>
           </CardHeader>
 
-          {showFilters && (
-            <FilterPanel>
-              <FilterInput
-                type="text"
-                placeholder="חיפוש לפי שם / תיאור..."
-                value={filters.search}
-                onChange={(e) => setFilter("search", e.target.value)}
-              />
-              <FilterInputRow>
-                <FilterInput
-                  type="date"
-                  value={filters.dateFrom}
-                  onChange={(e) => setFilter("dateFrom", e.target.value)}
-                  style={{ textAlign: "left" }}
-                />
-                <FilterInput
-                  type="date"
-                  value={filters.dateTo}
-                  onChange={(e) => setFilter("dateTo", e.target.value)}
-                  style={{ textAlign: "left" }}
-                />
-              </FilterInputRow>
-              <FilterSelect
-                value={filters.category}
-                onChange={(e) => setFilter("category", e.target.value)}
-              >
-                <option value="">כל הקטגוריות</option>
-                {allCategories.map((c) => (
-                  <option key={c.id} value={c.id}>{c.emoji} {c.label}</option>
-                ))}
-              </FilterSelect>
-              <FilterInputRow>
-                <FilterInput
-                  type="number"
-                  placeholder="מינימום ₪"
-                  value={filters.minAmount}
-                  onChange={(e) => setFilter("minAmount", e.target.value)}
-                />
-                <FilterInput
-                  type="number"
-                  placeholder="מקסימום ₪"
-                  value={filters.maxAmount}
-                  onChange={(e) => setFilter("maxAmount", e.target.value)}
-                />
-              </FilterInputRow>
-              {hasActiveFilters && (
-                <ClearBtn onClick={clearFilters}>נקה סינון ✕</ClearBtn>
-              )}
-            </FilterPanel>
-          )}
-
           {!filteredTransactions.length ? (
             <EmptyState>
               <span style={{ fontSize: 48, marginBottom: 8 }}>🌟</span>
@@ -250,7 +200,15 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
         {recurringTxs.length > 0 && (
           <RecurringCard>
             <CardHeader>
-              <RecurringCardTitle>⟳ קבועות</RecurringCardTitle>
+              <RecurringCardTitle>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 6, verticalAlign: "middle" }}>
+                  <polyline points="17 1 21 5 17 9" />
+                  <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                  <polyline points="7 23 3 19 7 15" />
+                  <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                </svg>
+                קבועות
+              </RecurringCardTitle>
             </CardHeader>
             {recurringTxs.map((tx) => {
               const cat = getCatInfo(tx.type, tx.category);
@@ -281,6 +239,116 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
           <span>עסקה נמחקה</span>
           <UndoBtn onClick={handleUndo}>בטל</UndoBtn>
         </UndoToast>
+      )}
+
+      {showFilters && (
+        <FilterOverlay onClick={() => setShowFilters(false)}>
+          <FilterSheet onClick={e => e.stopPropagation()}>
+            <FilterSheetHandle />
+            <FilterSheetHeader>
+              <FilterSheetTitle>סינון עסקאות</FilterSheetTitle>
+              {hasActiveFilters && (
+                <FilterClearBtn onClick={clearFilters}>נקה הכל</FilterClearBtn>
+              )}
+            </FilterSheetHeader>
+
+            <FilterSheetBody>
+              <FilterSection>
+                <FilterSectionLabel>חיפוש</FilterSectionLabel>
+                <FilterSheetInput
+                  type="text"
+                  placeholder="שם קטגוריה או תיאור..."
+                  value={filters.search}
+                  onChange={e => setFilter("search", e.target.value)}
+                />
+              </FilterSection>
+
+              <FilterSection>
+                <FilterSectionLabel>קטגוריה</FilterSectionLabel>
+                <FilterChipScroll>
+                  {[{ id: "", emoji: "🔍", label: "הכל" }, ...allCategories].map(c => (
+                    <FilterCatChip
+                      key={c.id}
+                      $active={filters.category === c.id}
+                      onClick={() => setFilter("category", c.id)}
+                    >
+                      {c.emoji} {c.label}
+                    </FilterCatChip>
+                  ))}
+                </FilterChipScroll>
+              </FilterSection>
+
+              <FilterSection>
+                <FilterSectionLabel>שיטת תשלום</FilterSectionLabel>
+                <FilterChipScroll>
+                  {[
+                    { val: "",         label: "הכל",     emoji: "🔍" },
+                    { val: "credit",   label: "אשראי",   emoji: "💳" },
+                    { val: "bit",      label: "ביט",     emoji: "📱" },
+                    { val: "cash",     label: "מזומן",   emoji: "💵" },
+                    { val: "transfer", label: "העברה",   emoji: "🏦" },
+                    { val: "paybox",   label: "פייבוקס", emoji: "📲" },
+                    { val: "check",    label: "צ׳ק",     emoji: "📝" },
+                  ].map(p => (
+                    <FilterCatChip
+                      key={p.val}
+                      $active={filters.paymentMethod === p.val}
+                      onClick={() => setFilter("paymentMethod", p.val)}
+                    >
+                      {p.emoji} {p.label}
+                    </FilterCatChip>
+                  ))}
+                </FilterChipScroll>
+              </FilterSection>
+
+              <FilterSection>
+                <FilterSectionLabel>טווח תאריכים</FilterSectionLabel>
+                <FilterDateRow>
+                  <FilterSheetInput
+                    type="date"
+                    value={filters.dateFrom}
+                    onChange={e => setFilter("dateFrom", e.target.value)}
+                    style={{ direction: "ltr", textAlign: "left" }}
+                  />
+                  <FilterDateSep>—</FilterDateSep>
+                  <FilterSheetInput
+                    type="date"
+                    value={filters.dateTo}
+                    onChange={e => setFilter("dateTo", e.target.value)}
+                    style={{ direction: "ltr", textAlign: "left" }}
+                  />
+                </FilterDateRow>
+              </FilterSection>
+
+              <FilterSection>
+                <FilterSectionLabel>טווח סכום (₪)</FilterSectionLabel>
+                <FilterDateRow>
+                  <FilterSheetInput
+                    type="number"
+                    placeholder="מינימום"
+                    value={filters.minAmount}
+                    onChange={e => setFilter("minAmount", e.target.value)}
+                    style={{ direction: "ltr", textAlign: "left" }}
+                  />
+                  <FilterDateSep>—</FilterDateSep>
+                  <FilterSheetInput
+                    type="number"
+                    placeholder="מקסימום"
+                    value={filters.maxAmount}
+                    onChange={e => setFilter("maxAmount", e.target.value)}
+                    style={{ direction: "ltr", textAlign: "left" }}
+                  />
+                </FilterDateRow>
+              </FilterSection>
+            </FilterSheetBody>
+
+            <FilterSheetFooter>
+              <ApplyBtn onClick={() => setShowFilters(false)}>
+                הצג תוצאות ({filteredTransactions.length})
+              </ApplyBtn>
+            </FilterSheetFooter>
+          </FilterSheet>
+        </FilterOverlay>
       )}
     </Page>
   );
@@ -395,68 +463,149 @@ const IconBtn = styled.button`
   transition: all 0.15s;
 `;
 
-const FilterPanel = styled.div`
-  margin-bottom: 14px;
+const FilterOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 500;
+  display: flex;
+  align-items: flex-end;
+`;
+
+const FilterSheet = styled.div`
+  background: #161b27;
+  border-radius: 24px 24px 0 0;
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid rgba(99,102,241,0.2);
+`;
+
+const FilterSheetHandle = styled.div`
+  width: 36px;
+  height: 4px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 2px;
+  margin: 12px auto 0;
+  flex-shrink: 0;
+`;
+
+const FilterSheetHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px 10px;
+  flex-shrink: 0;
+`;
+
+const FilterSheetTitle = styled.div`
+  font-weight: 700;
+  font-size: 17px;
+  color: #f0f4ff;
+`;
+
+const FilterClearBtn = styled.button`
+  background: none;
+  border: none;
+  color: #f472b6;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 4px 0;
+`;
+
+const FilterSheetBody = styled.div`
+  overflow-y: auto;
+  padding: 4px 20px 8px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+`;
+
+const FilterSection = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 12px;
-  background: #0d1117;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.04);
 `;
 
-const FilterInputRow = styled.div`
-  display: flex;
-  gap: 8px;
+const FilterSectionLabel = styled.div`
+  font-size: 12px;
+  font-weight: 700;
+  color: #4a5568;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 `;
 
-const FilterInput = styled.input`
+const FilterSheetInput = styled.input`
   flex: 1;
-  padding: 8px 12px;
-  border: 2px solid rgba(255,255,255,0.06);
-  border-radius: 10px;
-  font-size: 13px;
+  padding: 10px 14px;
+  border: 1.5px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  font-size: 14px;
   font-family: inherit;
   outline: none;
   color: #f0f4ff;
-  background: #161b27;
+  background: #1e2535;
   text-align: right;
-  width: 100%;
 
   &::placeholder { color: #2d3748; }
   &:focus { border-color: #6366f1; }
   &[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7); }
 `;
 
-const FilterSelect = styled.select`
-  flex: 1;
-  padding: 8px 12px;
-  border: 2px solid rgba(255,255,255,0.06);
-  border-radius: 10px;
-  font-size: 13px;
-  font-family: inherit;
-  outline: none;
-  color: #f0f4ff;
-  background: #161b27;
-  width: 100%;
-
-  &:focus { border-color: #6366f1; }
-
-  option { background: #161b27; }
+const FilterChipScroll = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 `;
 
-const ClearBtn = styled.button`
-  background: rgba(244,114,182,0.15);
+const FilterCatChip = styled.button`
+  padding: 7px 13px;
+  border-radius: 20px;
+  border: 1.5px solid ${({ $active }) => $active ? "#6366f1" : "rgba(255,255,255,0.07)"};
+  background: ${({ $active }) => $active ? "rgba(99,102,241,0.22)" : "#1e2535"};
+  color: ${({ $active }) => $active ? "#a5b4fc" : "#6b7aaa"};
+  font-size: 13px;
+  font-weight: ${({ $active }) => $active ? 700 : 400};
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+`;
+
+const FilterDateRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const FilterDateSep = styled.span`
+  color: #4a5568;
+  font-size: 14px;
+  flex-shrink: 0;
+`;
+
+const FilterSheetFooter = styled.div`
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(255,255,255,0.05);
+  flex-shrink: 0;
+`;
+
+const ApplyBtn = styled.button`
+  width: 100%;
+  padding: 14px;
   border: none;
-  color: #f472b6;
-  font-size: 12px;
-  font-weight: 600;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
   font-family: inherit;
-  padding: 6px 14px;
-  border-radius: 10px;
-  align-self: flex-start;
+  box-shadow: 0 4px 16px rgba(99,102,241,0.35);
 `;
 
 const EmptyState = styled.div`
@@ -508,6 +657,8 @@ const RecurringCardTitle = styled.div`
   font-weight: 700;
   font-size: 17px;
   color: #a5b4fc;
+  display: flex;
+  align-items: center;
 `;
 
 const TxRow = styled.div`
