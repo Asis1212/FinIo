@@ -249,12 +249,13 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
 
       {showFilters && (
         <FilterOverlay onClick={() => setShowFilters(false)}>
-          <FilterSheet onClick={e => e.stopPropagation()}>
-            <FilterSheetHandle
-              onTouchStart={e => { sheetDragY.current = e.touches[0].clientY; }}
-              onTouchMove={e => { if (sheetDragY.current !== null && e.touches[0].clientY - sheetDragY.current > 60) setShowFilters(false); }}
-              onTouchEnd={() => { sheetDragY.current = null; }}
-            />
+          <FilterSheet
+            onClick={e => e.stopPropagation()}
+            onTouchStart={e => { sheetDragY.current = e.touches[0].clientY; }}
+            onTouchMove={e => { if (sheetDragY.current !== null && e.touches[0].clientY - sheetDragY.current > 80) setShowFilters(false); }}
+            onTouchEnd={() => { sheetDragY.current = null; }}
+          >
+            <FilterSheetHandle />
             <FilterSheetHeader>
               <FilterSheetTitle>סינון עסקאות</FilterSheetTitle>
               {hasActiveFilters && (
