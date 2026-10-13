@@ -172,6 +172,7 @@ function Body({
           transactions={visibleTransactions}
           categories={categories}
           clearAllData={clearAllData}
+          addTransaction={handleAddTransaction}
         />
       )}
     </BodyContainer>

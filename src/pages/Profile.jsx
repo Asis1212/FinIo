@@ -9,10 +9,150 @@ const CURRENCIES = [
   { val: "EUR", symbol: "€", label: "יורו (€)" },
 ];
 
-function Profile({ profile, setProfile, transactions, categories, clearAllData }) {
+const UTILITY_DEFAULTS = {
+  electricity: { meterTotal: 0, pricePerUnit: 0.65, monthlyUsage: "" },
+  water:        { meterTotal: 0, pricePerUnit: 12,   monthlyUsage: "" },
+};
+
+function UtilityModal({ type, data, onClose, onSave, onReset, onAddToExpenses, categories }) {
+  const label    = type === "electricity" ? "חשמל" : "מים";
+  const emoji    = type === "electricity" ? "⚡" : "💧";
+  const unitName = type === "electricity" ? "קוט״ש" : "מ״ק";
+
+  const [draft, setDraft] = useState({
+    meterTotal:    data.meterTotal    ?? 0,
+    pricePerUnit:  data.pricePerUnit  ?? UTILITY_DEFAULTS[type].pricePerUnit,
+    monthlyUsage:  data.monthlyUsage  ?? "",
+  });
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  });
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+
+  const cost = draft.monthlyUsage ? (Number(draft.monthlyUsage) * Number(draft.pricePerUnit)) : 0;
+
+  const handleAddToExpenses = () => {
+    if (!draft.monthlyUsage || Number(draft.monthlyUsage) <= 0) return;
+    const [year, month] = selectedMonth.split("-").map(Number);
+    const date = `${year}-${String(month).padStart(2, "0")}-01`;
+    onAddToExpenses({
+      type,
+      amount: cost,
+      date,
+      usage: Number(draft.monthlyUsage),
+      newMeterTotal: Number(draft.meterTotal) + Number(draft.monthlyUsage),
+      pricePerUnit: Number(draft.pricePerUnit),
+    });
+  };
+
+  const handleReset = () => {
+    onReset(type);
+    setShowResetConfirm(false);
+  };
+
+  return (
+    <ModalOverlay onClick={onClose}>
+      <UtilitySheet onClick={e => e.stopPropagation()}>
+        <UtilitySheetHeader>
+          <UtilitySheetTitle>{emoji} {label}</UtilitySheetTitle>
+          <CloseBtn onClick={onClose}>✕</CloseBtn>
+        </UtilitySheetHeader>
+
+        <UtilitySheetBody>
+          {/* Meter reading */}
+          <UtilityFieldGroup>
+            <UtilityFieldLabel>קריאת שעון כוללת ({unitName})</UtilityFieldLabel>
+            <UtilityInput
+              type="number"
+              value={draft.meterTotal}
+              onChange={e => setDraft(d => ({ ...d, meterTotal: e.target.value }))}
+              onBlur={() => onSave(type, { ...data, meterTotal: Number(draft.meterTotal) })}
+              placeholder="0"
+            />
+          </UtilityFieldGroup>
+
+          {/* Price per unit */}
+          <UtilityFieldGroup>
+            <UtilityFieldLabel>מחיר ליחידה (₪ / {unitName})</UtilityFieldLabel>
+            <UtilityInput
+              type="number"
+              value={draft.pricePerUnit}
+              onChange={e => setDraft(d => ({ ...d, pricePerUnit: e.target.value }))}
+              onBlur={() => onSave(type, { ...data, pricePerUnit: Number(draft.pricePerUnit) })}
+              placeholder="0"
+            />
+          </UtilityFieldGroup>
+
+          {/* Monthly usage */}
+          <UtilityFieldGroup>
+            <UtilityFieldLabel>צריכה החודש ({unitName})</UtilityFieldLabel>
+            <UtilityInput
+              type="number"
+              value={draft.monthlyUsage}
+              onChange={e => setDraft(d => ({ ...d, monthlyUsage: e.target.value }))}
+              placeholder="0"
+            />
+          </UtilityFieldGroup>
+
+          {/* Month picker */}
+          <UtilityFieldGroup>
+            <UtilityFieldLabel>חודש לחיוב</UtilityFieldLabel>
+            <UtilityInput
+              type="month"
+              value={selectedMonth}
+              onChange={e => setSelectedMonth(e.target.value)}
+              style={{ direction: "ltr", textAlign: "left" }}
+            />
+          </UtilityFieldGroup>
+
+          {/* Cost preview */}
+          {cost > 0 && (
+            <CostPreview>
+              <CostPreviewLabel>עלות משוערת</CostPreviewLabel>
+              <CostPreviewAmount>
+                ₪{cost.toLocaleString("he-IL", { maximumFractionDigits: 2 })}
+              </CostPreviewAmount>
+            </CostPreview>
+          )}
+
+          {/* Action buttons */}
+          <UtilityActions>
+            <AddExpenseBtn
+              onClick={handleAddToExpenses}
+              disabled={!draft.monthlyUsage || Number(draft.monthlyUsage) <= 0}
+            >
+              הוסף להוצאות ✓
+            </AddExpenseBtn>
+            <ResetMeterBtn onClick={() => setShowResetConfirm(true)}>
+              איפוס שעון
+            </ResetMeterBtn>
+          </UtilityActions>
+        </UtilitySheetBody>
+
+        {/* Reset confirm */}
+        {showResetConfirm && (
+          <ResetConfirmOverlay onClick={() => setShowResetConfirm(false)}>
+            <ResetConfirmBox onClick={e => e.stopPropagation()}>
+              <ResetConfirmTitle>לאפס את קריאת השעון?</ResetConfirmTitle>
+              <ResetConfirmSub>קריאת השעון תחזור לאפס</ResetConfirmSub>
+              <ResetConfirmActions>
+                <CancelSmallBtn onClick={() => setShowResetConfirm(false)}>ביטול</CancelSmallBtn>
+                <ResetConfirmBtn onClick={handleReset}>אפס</ResetConfirmBtn>
+              </ResetConfirmActions>
+            </ResetConfirmBox>
+          </ResetConfirmOverlay>
+        )}
+      </UtilitySheet>
+    </ModalOverlay>
+  );
+}
+
+function Profile({ profile, setProfile, transactions, categories, clearAllData, addTransaction }) {
   const [editingPerson, setEditingPerson] = useState(null);
   const [nameDraft, setNameDraft] = useState("");
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [openUtility, setOpenUtility] = useState(null); // "electricity" | "water" | null
   const [incomeDraft, setIncomeDraft] = useState({
     personOneMonthlyIncome: profile.personOneMonthlyIncome,
     personTwoMonthlyIncome: profile.personTwoMonthlyIncome,
@@ -87,6 +227,59 @@ function Profile({ profile, setProfile, transactions, categories, clearAllData }
   const clearAllData_ = () => {
     clearAllData();
     setShowClearConfirm(false);
+  };
+
+  // ── Utilities ────────────────────────────────────────────────
+  const utilities = profile.utilities ?? {
+    electricity: { ...UTILITY_DEFAULTS.electricity },
+    water:       { ...UTILITY_DEFAULTS.water },
+  };
+
+  const saveUtility = (type, data) => {
+    setProfile(p => ({
+      ...p,
+      utilities: { ...(p.utilities ?? {}), [type]: data },
+    }));
+  };
+
+  const resetUtilityMeter = (type) => {
+    setProfile(p => ({
+      ...p,
+      utilities: {
+        ...(p.utilities ?? {}),
+        [type]: { ...(p.utilities?.[type] ?? UTILITY_DEFAULTS[type]), meterTotal: 0 },
+      },
+    }));
+  };
+
+  const handleUtilityAddToExpenses = ({ type, amount, date, usage, newMeterTotal, pricePerUnit }) => {
+    const label = type === "electricity" ? "חשמל" : "מים";
+    const emoji = type === "electricity" ? "⚡" : "💧";
+    const utilityCategory = categories.find(c =>
+      c.type === "expense" && (c.label.includes(label) || c.label.includes(type))
+    );
+    addTransaction({
+      id:          crypto.randomUUID(),
+      type:        "expense",
+      amount,
+      date,
+      category:    utilityCategory?.id ?? categories.find(c => c.type === "expense")?.id ?? "other",
+      description: `${emoji} ${label} — ${usage} יחידות`,
+      person:      "both",
+    });
+    setProfile(p => ({
+      ...p,
+      utilities: {
+        ...(p.utilities ?? {}),
+        [type]: {
+          ...(p.utilities?.[type] ?? UTILITY_DEFAULTS[type]),
+          meterTotal:   newMeterTotal,
+          monthlyUsage: "",
+          pricePerUnit,
+        },
+      },
+    }));
+    setOpenUtility(null);
   };
 
   // ── Statistics ──────────────────────────────────────────────
@@ -296,12 +489,51 @@ function Profile({ profile, setProfile, transactions, categories, clearAllData }
         </>
       )}
 
+      {/* Utilities */}
+      <Section>
+        <SectionTitle>חשמל ומים</SectionTitle>
+        <UtilityRow>
+          {[
+            { type: "electricity", emoji: "⚡", label: "חשמל", unitName: "קוט״ש" },
+            { type: "water",       emoji: "💧", label: "מים",  unitName: "מ״ק"   },
+          ].map(u => {
+            const uData = utilities[u.type] ?? UTILITY_DEFAULTS[u.type];
+            return (
+              <UtilityCard key={u.type} onClick={() => setOpenUtility(u.type)}>
+                <UtilityCardEmoji>{u.emoji}</UtilityCardEmoji>
+                <UtilityCardLabel>{u.label}</UtilityCardLabel>
+                <UtilityCardMeter>{Number(uData.meterTotal).toLocaleString("he-IL")} {u.unitName}</UtilityCardMeter>
+                <UtilityCardSub>₪{Number(uData.pricePerUnit).toFixed(2)} / {u.unitName}</UtilityCardSub>
+                {uData.monthlyUsage ? (
+                  <UtilityCardUsage>החודש: {uData.monthlyUsage} {u.unitName}</UtilityCardUsage>
+                ) : (
+                  <UtilityCardUsage $empty>לחץ לעדכון</UtilityCardUsage>
+                )}
+              </UtilityCard>
+            );
+          })}
+        </UtilityRow>
+      </Section>
+
       {/* Data Management */}
       <Section>
         <SectionTitle>ניהול נתונים</SectionTitle>
         <DataBtn onClick={exportAllCSV}>📄 ייצוא דוח מלא (PDF)</DataBtn>
         <DataBtn $danger onClick={() => setShowClearConfirm(true)}>🗑️ מחק את כל הנתונים</DataBtn>
       </Section>
+
+      {/* Utility Modal */}
+      {openUtility && (
+        <UtilityModal
+          type={openUtility}
+          data={utilities[openUtility] ?? UTILITY_DEFAULTS[openUtility]}
+          onClose={() => setOpenUtility(null)}
+          onSave={saveUtility}
+          onReset={resetUtilityMeter}
+          onAddToExpenses={handleUtilityAddToExpenses}
+          categories={categories}
+        />
+      )}
 
       {/* Edit Name Modal */}
       {editingPerson && (
@@ -908,4 +1140,248 @@ const DeleteConfirmBtn = styled.button`
   cursor: pointer;
   font-family: inherit;
   box-shadow: 0 4px 16px rgba(244,114,182,0.3);
+`;
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+
+const UtilityRow = styled.div`
+  display: flex;
+  gap: 12px;
+`;
+
+const UtilityCard = styled.div`
+  flex: 1;
+  background: #1e2535;
+  border-radius: 16px;
+  padding: 16px 12px;
+  text-align: center;
+  cursor: pointer;
+  border: 1px solid rgba(99,102,241,0.1);
+  transition: border-color 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+
+  &:active { border-color: rgba(99,102,241,0.4); }
+`;
+
+const UtilityCardEmoji = styled.div`
+  font-size: 28px;
+  margin-bottom: 2px;
+`;
+
+const UtilityCardLabel = styled.div`
+  font-size: 13px;
+  font-weight: 700;
+  color: #f0f4ff;
+`;
+
+const UtilityCardMeter = styled.div`
+  font-size: 15px;
+  font-weight: 800;
+  color: #a5b4fc;
+  letter-spacing: -0.3px;
+`;
+
+const UtilityCardSub = styled.div`
+  font-size: 11px;
+  color: #4a5568;
+`;
+
+const UtilityCardUsage = styled.div`
+  font-size: 11px;
+  font-weight: 600;
+  color: ${({ $empty }) => $empty ? "#4a5568" : "#22d3a5"};
+  margin-top: 2px;
+`;
+
+const UtilitySheet = styled.div`
+  background: #161b27;
+  border-radius: 24px 24px 0 0;
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid rgba(99,102,241,0.2);
+  position: relative;
+`;
+
+const UtilitySheetHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 20px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+`;
+
+const UtilitySheetTitle = styled.div`
+  font-size: 18px;
+  font-weight: 800;
+  color: #f0f4ff;
+`;
+
+const UtilitySheetBody = styled.div`
+  overflow-y: auto;
+  padding: 18px 20px calc(18px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+`;
+
+const UtilityFieldGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`;
+
+const UtilityFieldLabel = styled.div`
+  font-size: 12px;
+  font-weight: 700;
+  color: #4a5568;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+`;
+
+const UtilityInput = styled.input`
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  background: #1e2535;
+  color: #f0f4ff;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: inherit;
+  outline: none;
+  text-align: right;
+  box-sizing: border-box;
+
+  &::placeholder { color: #2d3748; font-weight: 400; }
+  &:focus { border-color: #6366f1; }
+  &[type="month"]::-webkit-calendar-picker-indicator { filter: invert(0.7); }
+`;
+
+const CostPreview = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: rgba(99,102,241,0.08);
+  border: 1px solid rgba(99,102,241,0.18);
+  border-radius: 14px;
+`;
+
+const CostPreviewLabel = styled.div`
+  font-size: 13px;
+  color: #8b9dc3;
+  font-weight: 500;
+`;
+
+const CostPreviewAmount = styled.div`
+  font-size: 20px;
+  font-weight: 800;
+  color: #a5b4fc;
+  letter-spacing: -0.5px;
+`;
+
+const UtilityActions = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+`;
+
+const AddExpenseBtn = styled.button`
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  background: ${({ disabled }) => disabled
+    ? "rgba(99,102,241,0.2)"
+    : "linear-gradient(135deg, #6366f1, #8b5cf6)"};
+  color: ${({ disabled }) => disabled ? "#4a5568" : "white"};
+  font-size: 15px;
+  font-weight: 700;
+  cursor: ${({ disabled }) => disabled ? "default" : "pointer"};
+  font-family: inherit;
+  box-shadow: ${({ disabled }) => disabled ? "none" : "0 4px 16px rgba(99,102,241,0.35)"};
+  transition: all 0.2s;
+`;
+
+const ResetMeterBtn = styled.button`
+  width: 100%;
+  padding: 12px;
+  border: 1px solid rgba(244,114,182,0.2);
+  border-radius: 14px;
+  background: rgba(244,114,182,0.07);
+  color: #f472b6;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+`;
+
+const ResetConfirmOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  border-radius: 24px 24px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+`;
+
+const ResetConfirmBox = styled.div`
+  background: #1e2535;
+  border-radius: 20px;
+  padding: 24px;
+  width: 100%;
+  border: 1px solid rgba(244,114,182,0.2);
+  text-align: center;
+`;
+
+const ResetConfirmTitle = styled.div`
+  font-size: 16px;
+  font-weight: 700;
+  color: #f0f4ff;
+  margin-bottom: 6px;
+`;
+
+const ResetConfirmSub = styled.div`
+  font-size: 13px;
+  color: #8b9dc3;
+  margin-bottom: 20px;
+`;
+
+const ResetConfirmActions = styled.div`
+  display: flex;
+  gap: 10px;
+`;
+
+const CancelSmallBtn = styled.button`
+  flex: 1;
+  padding: 11px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  background: transparent;
+  color: #8b9dc3;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+`;
+
+const ResetConfirmBtn = styled.button`
+  flex: 1;
+  padding: 11px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f472b6, #e11d48);
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
 `;
