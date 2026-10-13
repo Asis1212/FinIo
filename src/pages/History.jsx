@@ -496,12 +496,10 @@ const FilterSheet = styled.div`
 const FilterSheetHandle = styled.div`
   width: 36px;
   height: 4px;
-  background: rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.25);
   border-radius: 2px;
   margin: 12px auto 4px;
   flex-shrink: 0;
-  padding: 10px 40px;
-  background-clip: content-box;
   cursor: grab;
 `;
 
