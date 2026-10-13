@@ -46,6 +46,16 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({ search: "", dateFrom: "", dateTo: "", category: "", minAmount: "", maxAmount: "", paymentMethod: "" });
   const sheetDragY = useRef(null);
+  const isDraggingHandle = useRef(false);
+
+  useEffect(() => {
+    if (showFilters) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [showFilters]);
 
   const allCategories = categories ?? [];
   const expenseCategories = allCategories.filter(c => c.type === "expense");
@@ -248,14 +258,26 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
       )}
 
       {showFilters && (
-        <FilterOverlay onClick={() => setShowFilters(false)}>
-          <FilterSheet
-            onClick={e => e.stopPropagation()}
-            onTouchStart={e => { sheetDragY.current = e.touches[0].clientY; }}
-            onTouchMove={e => { if (sheetDragY.current !== null && e.touches[0].clientY - sheetDragY.current > 80) setShowFilters(false); }}
-            onTouchEnd={() => { sheetDragY.current = null; }}
-          >
-            <FilterSheetHandle />
+        <FilterOverlay>
+          <FilterSheet onClick={e => e.stopPropagation()}>
+            <FilterSheetHandle
+              onTouchStart={e => {
+                isDraggingHandle.current = true;
+                sheetDragY.current = e.touches[0].clientY;
+              }}
+              onTouchMove={e => {
+                if (!isDraggingHandle.current) return;
+                if (e.touches[0].clientY - sheetDragY.current > 60) {
+                  isDraggingHandle.current = false;
+                  sheetDragY.current = null;
+                  setShowFilters(false);
+                }
+              }}
+              onTouchEnd={() => {
+                isDraggingHandle.current = false;
+                sheetDragY.current = null;
+              }}
+            />
             <FilterSheetHeader>
               <FilterSheetTitle>סינון עסקאות</FilterSheetTitle>
               {hasActiveFilters && (
@@ -494,13 +516,22 @@ const FilterSheet = styled.div`
 `;
 
 const FilterSheetHandle = styled.div`
-  width: 36px;
-  height: 4px;
-  background: rgba(255,255,255,0.25);
-  border-radius: 2px;
-  margin: 12px auto 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 14px 0 8px;
   flex-shrink: 0;
   cursor: grab;
+  touch-action: none;
+
+  &::after {
+    content: "";
+    display: block;
+    width: 40px;
+    height: 5px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 3px;
+  }
 `;
 
 const FilterSheetHeader = styled.div`
