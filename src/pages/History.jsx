@@ -44,6 +44,7 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
   const [undoItem, setUndoItem] = useState(null);
   const [undoTimer, setUndoTimer] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
   const [filters, setFilters] = useState({ search: "", dateFrom: "", dateTo: "", category: "", minAmount: "", maxAmount: "", paymentMethod: "" });
   const sheetDragY = useRef(null);
   const isDraggingHandle = useRef(false);
@@ -51,6 +52,7 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
   useEffect(() => {
     if (showFilters) {
       document.body.style.overflow = "hidden";
+      setDragOffset(0);
     } else {
       document.body.style.overflow = "";
     }
@@ -259,7 +261,7 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
 
       {showFilters && (
         <FilterOverlay>
-          <FilterSheet onClick={e => e.stopPropagation()}>
+          <FilterSheet $dragOffset={dragOffset} onClick={e => e.stopPropagation()}>
             <FilterSheetHandle
               onTouchStart={e => {
                 isDraggingHandle.current = true;
@@ -267,13 +269,15 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
               }}
               onTouchMove={e => {
                 if (!isDraggingHandle.current) return;
-                if (e.touches[0].clientY - sheetDragY.current > 60) {
-                  isDraggingHandle.current = false;
-                  sheetDragY.current = null;
-                  setShowFilters(false);
-                }
+                const dy = Math.max(0, e.touches[0].clientY - sheetDragY.current);
+                setDragOffset(dy);
               }}
               onTouchEnd={() => {
+                if (dragOffset > 120) {
+                  setShowFilters(false);
+                } else {
+                  setDragOffset(0);
+                }
                 isDraggingHandle.current = false;
                 sheetDragY.current = null;
               }}
@@ -513,6 +517,8 @@ const FilterSheet = styled.div`
   display: flex;
   flex-direction: column;
   border-top: 1px solid rgba(99,102,241,0.2);
+  transform: translateY(${({ $dragOffset }) => $dragOffset ?? 0}px);
+  transition: ${({ $dragOffset }) => $dragOffset > 0 ? "none" : "transform 0.3s ease"};
 `;
 
 const FilterSheetHandle = styled.div`
