@@ -98,12 +98,25 @@ function UtilityModal({ type, data, onClose, onSave, onReset, onAddToExpenses, c
           {/* Month picker */}
           <UtilityFieldGroup>
             <UtilityFieldLabel>חודש לחיוב</UtilityFieldLabel>
-            <UtilityInput
-              type="month"
-              value={selectedMonth}
-              onChange={e => setSelectedMonth(e.target.value)}
-              style={{ direction: "ltr", textAlign: "left" }}
-            />
+            <MonthPickerRow>
+              <UtilitySelect
+                value={selectedMonth.split("-")[1]}
+                onChange={e => setSelectedMonth(s => `${s.split("-")[0]}-${e.target.value}`)}
+              >
+                {[["01","ינואר"],["02","פברואר"],["03","מרץ"],["04","אפריל"],["05","מאי"],["06","יוני"],["07","יולי"],["08","אוגוסט"],["09","ספטמבר"],["10","אוקטובר"],["11","נובמבר"],["12","דצמבר"]].map(([v, l]) => (
+                  <option key={v} value={v}>{l}</option>
+                ))}
+              </UtilitySelect>
+              <UtilitySelect
+                value={selectedMonth.split("-")[0]}
+                onChange={e => setSelectedMonth(s => `${e.target.value}-${s.split("-")[1]}`)}
+                style={{ maxWidth: 90 }}
+              >
+                {[2024,2025,2026,2027].map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </UtilitySelect>
+            </MonthPickerRow>
           </UtilityFieldGroup>
 
           {/* Cost preview */}
@@ -1327,6 +1340,29 @@ const ResetMeterBtn = styled.button`
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
+`;
+
+const MonthPickerRow = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+const UtilitySelect = styled.select`
+  flex: 1;
+  padding: 12px 10px;
+  border: 1.5px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  background: #1e2535;
+  color: #f0f4ff;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  outline: none;
+  text-align: right;
+  box-sizing: border-box;
+
+  &:focus { border-color: #6366f1; }
+  option { background: #161b27; }
 `;
 
 const ResetConfirmOverlay = styled.div`
