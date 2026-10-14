@@ -1259,7 +1259,14 @@ const UtilityInput = styled.input`
 
   &::placeholder { color: #2d3748; font-weight: 400; }
   &:focus { border-color: #6366f1; }
-  &[type="month"]::-webkit-calendar-picker-indicator { filter: invert(0.7); }
+  &[type="month"] {
+    direction: ltr;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 400;
+    color: #f0f4ff;
+    &::-webkit-calendar-picker-indicator { filter: invert(0.7); }
+  }
 `;
 
 const CostPreview = styled.div`
