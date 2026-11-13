@@ -515,7 +515,7 @@ function Profile({ profile, setProfile, transactions, categories, clearAllData, 
               <UtilityCard key={u.type} onClick={() => setOpenUtility(u.type)}>
                 <UtilityCardEmoji>{u.emoji}</UtilityCardEmoji>
                 <UtilityCardLabel>{u.label}</UtilityCardLabel>
-                <UtilityCardMeter>{Number(uData.meterTotal).toLocaleString("he-IL")} {u.unitName}</UtilityCardMeter>
+                <UtilityCardMeter>{Number(uData.meterTotal).toLocaleString("he-IL", { maximumFractionDigits: 2 })} {u.unitName}</UtilityCardMeter>
                 <UtilityCardSub>₪{Number(uData.pricePerUnit).toFixed(2)} / {u.unitName}</UtilityCardSub>
                 {uData.monthlyUsage ? (
                   <UtilityCardUsage>החודש: {uData.monthlyUsage} {u.unitName}</UtilityCardUsage>

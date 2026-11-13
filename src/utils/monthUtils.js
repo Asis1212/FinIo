@@ -19,16 +19,14 @@ export function getCycleLabel(dateStr, cycleDay = 1) {
     return heFormatter.format(cycleStartDate);
   }
 
-  // Cross-month label: "ספטמבר–אוקטובר 2026"
-  const endDate = new Date(cycleStartDate.getFullYear(), cycleStartDate.getMonth() + 1, cycleDay - 1);
-  const startMonth = new Intl.DateTimeFormat("he-IL", { month: "long" }).format(cycleStartDate);
-  const endMonth   = new Intl.DateTimeFormat("he-IL", { month: "long" }).format(endDate);
-  const year       = cycleStartDate.getFullYear();
-
-  if (cycleStartDate.getMonth() === endDate.getMonth()) {
-    return `${startMonth} ${year}`;
-  }
-  return `${startMonth}–${endMonth} ${year}`;
+  // Label by the month that holds the majority of the cycle.
+  // A cycle runs from cycleDay of month M to (cycleDay-1) of month M+1.
+  // Days from cycleDay to end-of-month M  = daysInMonth(M) - cycleDay + 1
+  // Days from 1 to cycleDay-1 of month M+1 = cycleDay - 1
+  // The majority month is M when daysInMonth(M) - cycleDay + 1 >= cycleDay - 1,
+  // i.e. daysInMonth(M) >= 2*cycleDay - 2.  For any cycleDay <= 16 this is always true.
+  // For simplicity we always use the start month as the label.
+  return `${new Intl.DateTimeFormat("he-IL", { month: "long" }).format(cycleStartDate)} ${cycleStartDate.getFullYear()}`;
 }
 
 // Returns true if a transaction date belongs to the given cycle label

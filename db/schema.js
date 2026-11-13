@@ -1,4 +1,4 @@
-import { pgTable, text, numeric, boolean, integer, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, text, numeric, boolean, integer, timestamp, jsonb } from 'drizzle-orm/pg-core';
 
 export const profile = pgTable('profile', {
   id:                     integer('id').primaryKey().default(1),
@@ -8,6 +8,7 @@ export const profile = pgTable('profile', {
   personOneMonthlyIncome: numeric('person_one_monthly_income').notNull().default('0'),
   personTwoMonthlyIncome: numeric('person_two_monthly_income').notNull().default('0'),
   monthCycleDay:          integer('month_cycle_day').notNull().default(1),
+  utilities:              jsonb('utilities'),
   updatedAt:              timestamp('updated_at').notNull().defaultNow(),
 });
 

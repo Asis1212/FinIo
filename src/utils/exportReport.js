@@ -180,10 +180,19 @@ export function exportHTMLReport({ transactions, categories, profile, cycleDay =
   .person-card .amount { font-size: 20px; font-weight: 800; color: #f472b6; }
   .insight { background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); border-radius: 12px; padding: 14px 16px; font-size: 14px; color: #c7d2e8; line-height: 1.7; }
   .insight strong { color: #a5b4fc; }
-  @media print { body { background: white; color: black; } .card, .section { background: #f8f9fa; border: 1px solid #ddd; } }
+  .print-btn { position: fixed; bottom: 28px; left: 28px; background: #6366f1; color: white; border: none; border-radius: 14px; padding: 14px 24px; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 20px rgba(99,102,241,0.4); z-index: 999; direction: rtl; }
+  .print-btn:hover { background: #4f46e5; }
+  @media print {
+    .print-btn { display: none; }
+    body { background: white; color: #111; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .section { background: #f8f9fa !important; border: 1px solid #ddd !important; break-inside: avoid; }
+    .card { background: #f0f0f0 !important; }
+    @page { margin: 1.5cm; size: A4; }
+  }
 </style>
 </head>
 <body>
+<button class="print-btn" onclick="window.print()">📄 הורד כ-PDF</button>
 <h1>📊 ${title}</h1>
 <div class="subtitle">נוצר ב-${generatedDate} · ${p1Name} ו-${p2Name}</div>
 
@@ -245,10 +254,5 @@ ${txList.length > 0 ? `
 
   const blob = new Blob([html], { type: "text/html;charset=utf-8;" });
   const url  = URL.createObjectURL(blob);
-  const win  = window.open(url, "_blank");
-  if (win) {
-    win.onload = () => {
-      setTimeout(() => { win.print(); URL.revokeObjectURL(url); }, 400);
-    };
-  }
+  window.open(url, "_blank");
 }

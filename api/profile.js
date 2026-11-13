@@ -13,6 +13,7 @@ function toClient(row) {
     personOneMonthlyIncome: row.personOneMonthlyIncome ?? '0',
     personTwoMonthlyIncome: row.personTwoMonthlyIncome ?? '0',
     monthCycleDay:          row.monthCycleDay ?? 1,
+    utilities:              row.utilities ?? null,
   };
 }
 
@@ -32,6 +33,7 @@ export async function PUT(req) {
     personOneMonthlyIncome: String(body.personOneMonthlyIncome ?? 0),
     personTwoMonthlyIncome: String(body.personTwoMonthlyIncome ?? 0),
     monthCycleDay:          body.monthCycleDay ?? 1,
+    utilities:              body.utilities ?? null,
     updatedAt:              new Date(),
   }).onConflictDoUpdate({
     target: profile.id,
@@ -42,6 +44,7 @@ export async function PUT(req) {
       personOneMonthlyIncome: String(body.personOneMonthlyIncome ?? 0),
       personTwoMonthlyIncome: String(body.personTwoMonthlyIncome ?? 0),
       monthCycleDay:          body.monthCycleDay ?? 1,
+      utilities:              body.utilities ?? null,
       updatedAt:              new Date(),
     },
   });

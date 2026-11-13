@@ -57,14 +57,20 @@ function TransactionForm({ setActivityPage, toast, setToast, addTransaction, edi
       const perPayment = Math.round((parseFloat(formData.amount) / count) * 100) / 100;
       const groupId = crypto.randomUUID();
       const [year, month, day] = formData.date.split("-").map(Number);
+      const cycleDay = profile?.monthCycleDay ?? 1;
       for (let i = 0; i < count; i++) {
         let dateStr;
         if (i === 0) {
           dateStr = formData.date;
         } else {
-          const m = ((month - 1 + i) % 12) + 1;
-          const y = year + Math.floor((month - 1 + i) / 12);
-          dateStr = `${y}-${String(m).padStart(2, "0")}-01`;
+          // Next payment falls on the cycleDay of the next cycle.
+          // If the purchase day is before cycleDay, the next cycle starts this same month;
+          // otherwise it starts next month.
+          const firstCycleMonthOffset = day < cycleDay ? 0 : 1;
+          const totalOffset = firstCycleMonthOffset + (i - 1);
+          const m = ((month - 1 + totalOffset) % 12) + 1;
+          const y = year + Math.floor((month - 1 + totalOffset) / 12);
+          dateStr = `${y}-${String(m).padStart(2, "0")}-${String(cycleDay).padStart(2, "0")}`;
         }
         addTransaction({
           id: crypto.randomUUID(),
