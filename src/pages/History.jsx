@@ -122,8 +122,8 @@ function History({ transactions, selectedMonth, cycleDay = 1, removeTransaction,
 
   useEffect(() => () => { if (undoTimer) clearTimeout(undoTimer); }, []);
 
-  const exportCSV = () => {
-    exportHTMLReport({
+  const exportCSV = async () => {
+    await exportHTMLReport({
       transactions: monthFiltered,
       categories: allCategories,
       profile,

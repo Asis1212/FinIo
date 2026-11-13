@@ -218,7 +218,7 @@ function Profile({ profile, setProfile, transactions, categories, clearAllData, 
     setEditingPerson(null);
   };
 
-  const exportAllCSV = () => {
+  const exportAllCSV = async () => {
     const cycleDay = profile.monthCycleDay ?? 1;
     const cycles = [];
     for (let i = 0; i < 12; i++) {
@@ -229,7 +229,7 @@ function Profile({ profile, setProfile, transactions, categories, clearAllData, 
       cycles.push(getCycleLabel(dateStr, cycleDay));
     }
     const last12 = transactions.filter(tx => cycles.includes(getCycleLabel(tx.date, cycleDay)));
-    exportHTMLReport({
+    await exportHTMLReport({
       transactions: last12,
       categories,
       profile,
